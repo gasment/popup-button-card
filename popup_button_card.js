@@ -1,4 +1,4 @@
-//v2.2.5
+//v2.2.6
 /* === NEW: 在 Lovelace 配置里查找 content_id 对应的内容源 === */
 function __pbcFindContentInConfig(rootCfg, targetId) {
   if (!rootCfg || !targetId) return null;
@@ -638,7 +638,7 @@ class PopupButtonCard extends HTMLElement {
           width: 100%;
           height: 100%;
           position: relative; /* 为 z-index 和绝对定位的子元素提供定位上下文 */
-          pointer-events:auto; touch-action:manipulation;
+          pointer-events:none; touch-action:manipulation;
         }
 
         /* 3. 内层可视包裹：所有视觉样式和内部布局都在这里 */
@@ -650,6 +650,8 @@ class PopupButtonCard extends HTMLElement {
           box-shadow:0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
           transform-origin:center center;
           transition: transform 220ms ease-out, box-shadow 200ms ease, background 200ms ease, border-radius 200ms ease;
+          pointer-events: auto;  /* 允许事件 */
+          cursor: pointer;
         }
 
         /* ========= 层级管理：核心逻辑 ========= */
@@ -980,6 +982,10 @@ class PopupButtonCard extends HTMLElement {
 
     // 统一应用 styles.button
     if (styles.button) this._applyButtonStylesUnified(styles.button);
+
+    if (styles.card) {
+      this.applyStyleList(this._toggleEl, this._config.styles.card);
+    }
 
     if (this._open) this.positionPopup();
   }
@@ -1754,7 +1760,7 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((c) => c.type === 'popup-button-card')) {
   window.customCards.push({ 
     type: 'popup-button-card', 
-    name: 'Popup Button Card v2.2.5', 
+    name: 'Popup Button Card v2.2.6', 
     description: '一个带弹窗的按钮卡片' 
   });
 }
