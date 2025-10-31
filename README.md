@@ -154,6 +154,13 @@ A homeassistant customizable card with a button &amp; a popup window
 
 ### styles用法
 - styles由多个数组构成，每个数组入口固定，数组内可配置通用css样式，或使用js表达式动态返回
+- styles->card，设置按钮所在卡片容器的样式
+    ```
+    styles:
+      card:
+        - width: 100px
+        - height: 50px
+    ```
 - styles->content，设置弹窗外部包裹容器的样式
     ```
     styles:
