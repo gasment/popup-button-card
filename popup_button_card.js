@@ -647,7 +647,7 @@ class PopupButtonCard extends HTMLElement {
           padding:8px 12px;
           background: var(--pbc-btn-bg, transparent);
           border-radius:6px;
-          box-shadow:0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+          box-shadow: 0px 2px 5px 0px rgb(193,193,193);
           transform-origin:center center;
           transition: transform 220ms ease-out, box-shadow 200ms ease, background 200ms ease, border-radius 200ms ease;
           pointer-events: auto;  /* 允许事件 */
@@ -1764,3 +1764,4 @@ if (!window.customCards.some((c) => c.type === 'popup-button-card')) {
     description: '一个带弹窗的按钮卡片' 
   });
 }
+
