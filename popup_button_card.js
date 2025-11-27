@@ -1,4 +1,4 @@
-//v2.2.6
+//v2.3.0
 /* === NEW: 在 Lovelace 配置里查找 content_id 对应的内容源 === */
 function __pbcFindContentInConfig(rootCfg, targetId) {
   if (!rootCfg || !targetId) return null;
@@ -1217,59 +1217,57 @@ class PopupButtonCard extends HTMLElement {
   
   _setupFullscreenOverlayListeners() {
     if (!this._popupEl) return; 
-    this._popupEl.addEventListener('wheel', this._onOverlayWheelOrTouchMove, { passive:false }); 
-    this._popupEl.addEventListener('touchmove', this._onOverlayWheelOrTouchMove, { passive:false });
+    this._popupEl.addEventListener('click', this._onOverlayClickToClose, { capture:false });
     this._popupEl.addEventListener('click', this._onOverlayGuardClick, { capture:true, passive:false });
     this._popupEl.addEventListener('pointerup', this._onOverlayGuardClick, { capture:true, passive:false });
-    this._popupEl.addEventListener('touchend', this._onOverlayGuardClick, { capture:true, passive:false });
+    this._popupEl.addEventListener('touchend', this._onOverlayGuardClick, { capture:true });
     this._popupEl.addEventListener('touchstart', this._onOverlayTouchStart, { passive:false });
+    window.addEventListener('wheel', this._onFsWheelOrTouchMove, { capture: true, passive: false });
+    window.addEventListener('touchmove', this._onFsWheelOrTouchMove, { capture: true, passive: false });
   }
   
   _teardownFullscreenOverlayListeners() {
     if (!this._popupEl) return; 
-    this._popupEl.removeEventListener('wheel', this._onOverlayWheelOrTouchMove, { passive:false }); 
-    this._popupEl.removeEventListener('touchmove', this._onOverlayWheelOrTouchMove, { passive:false }); 
     this._popupEl.removeEventListener('click', this._onOverlayClickToClose, { capture:false });
     this._popupEl.removeEventListener('click', this._onOverlayGuardClick, { capture:true });
     this._popupEl.removeEventListener('pointerup', this._onOverlayGuardClick, { capture:true });
     this._popupEl.removeEventListener('touchend', this._onOverlayGuardClick, { capture:true });
-    this._popupEl.removeEventListener('touchstart', this._onOverlayTouchStart, { passive:false })
+    this._popupEl.removeEventListener('touchstart', this._onOverlayTouchStart, { passive:false });
     this._destroyFullscreenWrap();
+    window.removeEventListener('wheel', this._onFsWheelOrTouchMove, { capture: true });
+    window.removeEventListener('touchmove', this._onFsWheelOrTouchMove, { capture: true });
   }
+
   
-  _onOverlayWheelOrTouchMove(e) {
-    if (this._side === 'full_screen') {
-      const wrap = this._contentWrap;
-      if (!wrap) { e.preventDefault(); e.stopPropagation(); return; }
+  _onFsWheelOrTouchMove = (e) => {
+    // 只在当前卡处于 fullscreen 且已打开时处理
+    if (!this._open || this._side !== 'full_screen') return;
+    if (!this._popupEl || !this._contentWrap) return;
 
-      const inWrap = wrap.contains(e.target);
-      if (!inWrap) { e.preventDefault(); e.stopPropagation(); return; }
+    // 使用 composedPath 判断事件是否在当前 popup 内
+    const path = e.composedPath ? e.composedPath() : [];
+    const inPopup = path.includes(this._popupEl);
+    if (!inPopup) return;  // 不属于这个 popup，放行
 
-      const canScroll = wrap.scrollHeight > wrap.clientHeight + 1;
-      if (!canScroll) { e.preventDefault(); e.stopPropagation(); return; }
+    // 是否在内容容器内（content-wrap 及其子树）
+    const inContent = path.includes(this._contentWrap);
 
-      let deltaY = 0;
-      if (e.type === 'wheel') {
-        deltaY = e.deltaY || 0;
-      } else if (e.type === 'touchmove') {
-        const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
-        if (t && typeof this._lastTouchY === 'number') {
-          deltaY = this._lastTouchY - t.clientY;
-          this._lastTouchY = t.clientY;
-        } else {
-          deltaY = 0;
-        }
-      }
-
-      const atTop = wrap.scrollTop <= 0;
-      const atBottom = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 1;
-      if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
+    // ✅ 不在 content 内（也就是 overlay 上）→ 禁止滚动
+    if (!inContent) {
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
+
+    // ✅ 在 content 内部 → 完全放行，让子卡 / content-wrap 自己处理滚动
+    // 不做任何 preventDefault
+  };
+
+
+
+  _onOverlayWheelOrTouchMove(e) {
+    // fullscreen 的滚动由 _onFsWheelOrTouchMove 负责，这里直接退出
+    if (this._side === 'full_screen') return;
 
     if (this._config?.popup_outside_blur) {
       const inPopup = this._popupEl && (this._popupEl === e.target || this._popupEl.contains(e.target));
@@ -1279,6 +1277,7 @@ class PopupButtonCard extends HTMLElement {
       }
     }
   }
+
 
   _onOverlayClickToClose(e) { 
     if (!this._overlayArmed || this._justOpened) return; 
@@ -1760,8 +1759,7 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((c) => c.type === 'popup-button-card')) {
   window.customCards.push({ 
     type: 'popup-button-card', 
-    name: 'Popup Button Card v2.2.6', 
+    name: 'Popup Button Card v2.3.0', 
     description: '一个带弹窗的按钮卡片' 
   });
 }
-
